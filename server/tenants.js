@@ -6,30 +6,32 @@ const bcrypt = require('bcryptjs');
  * y su propia Base de Datos y Tabla en Airtable.
  */
 const TENANTS = {
-  'estetica': {
-    id: 'estetica',
-    name: 'Centro de Estética & Belleza Glam',
+  // 🌸 Cliente 1 (Real): Centro de Podología & Estética
+  'podologia': {
+    id: 'podologia',
+    name: 'Centro de Podología & Manicuría',
     theme: 'aesthetic',
-    icon: '🌸',
-    tagline: 'Gestión Integral de Clientes y Tratamientos',
-    username: 'estetica_admin',
-    // Password predeterminada: 'estetica123'
-    passwordPlain: 'estetica123',
-    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W', // Hash bcrypt para estetica123
+    icon: '💅',
+    tagline: 'Gestión Integral de Pacientes y Turnos de Estética',
+    username: 'podologia_admin',
+    passwordPlain: 'podologia123',
+    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W',
     vocabulary: {
-      entitySingular: 'Cliente',
-      entityPlural: 'Clientes',
-      newAction: 'Nuevo Cliente',
-      editAction: 'Editar Cliente',
-      identifierLabel: 'Ficha / ID',
-      eventsLabel: 'Tratamientos / Turnos',
-      primarySearchPlaceholder: 'Buscar por nombre, teléfono o ficha...'
+      entitySingular: 'Paciente',
+      entityPlural: 'Pacientes',
+      newAction: 'Nuevo Paciente',
+      editAction: 'Editar Paciente',
+      identifierLabel: 'Historia Clínica (HC)',
+      eventsLabel: 'Turnos / Tratamientos',
+      primarySearchPlaceholder: 'Buscar por nombre, apellido, teléfono o HC...'
     },
     airtable: {
       baseId: process.env.AIRTABLE_BASE_ID || 'appljMcMjD7reOMsg',
       tableId: process.env.AIRTABLE_TABLE_ID || 'tblwNKUcveOLycUye'
     }
   },
+
+  // 🏥 Cliente 2: Sanatorio & Centro Médico
   'clinica': {
     id: 'clinica',
     name: 'Sanatorio & Centro Médico Belgrano',
@@ -38,7 +40,7 @@ const TENANTS = {
     tagline: 'Portal Clínico de Gestión de Pacientes y Consultas',
     username: 'clinica_admin',
     passwordPlain: 'clinica123',
-    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W', // clinica123
+    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W',
     vocabulary: {
       entitySingular: 'Paciente',
       entityPlural: 'Pacientes',
@@ -53,6 +55,8 @@ const TENANTS = {
       tableId: 'tblPacientesSanatorio'
     }
   },
+
+  // 🌿 Cliente 3: Centro de Rehabilitación & Kinesiología
   'rehab': {
     id: 'rehab',
     name: 'Centro de Rehabilitación & Kinesiología',
@@ -61,7 +65,7 @@ const TENANTS = {
     tagline: 'Seguimiento de Pacientes y Sesiones Terapéuticas',
     username: 'rehab_admin',
     passwordPlain: 'rehab123',
-    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W', // rehab123
+    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W',
     vocabulary: {
       entitySingular: 'Paciente',
       entityPlural: 'Pacientes',
@@ -76,6 +80,8 @@ const TENANTS = {
       tableId: 'tblPacientesRehab'
     }
   },
+
+  // ⚡ Cliente 4: Gimnasio & Estudio Fitness
   'fitness': {
     id: 'fitness',
     name: 'Gimnasio & Estudio Fitness Pro',
@@ -84,7 +90,7 @@ const TENANTS = {
     tagline: 'Control de Socios, Membresías y Reservas',
     username: 'gym_admin',
     passwordPlain: 'gym123',
-    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W', // gym123
+    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W',
     vocabulary: {
       entitySingular: 'Socio',
       entityPlural: 'Socios',
@@ -101,13 +107,15 @@ const TENANTS = {
   }
 };
 
-// Asegurar soporte retrocompatible con el operador por defecto
+// Aliases convenientes
 TENANTS['operador'] = {
-  ...TENANTS['estetica'],
+  ...TENANTS['podologia'],
   id: 'operador',
   username: 'operador',
   passwordPlain: 'admin123'
 };
+
+TENANTS['estetica_admin'] = TENANTS['podologia'];
 
 function getTenantById(tenantId) {
   return TENANTS[tenantId] || null;
@@ -126,7 +134,6 @@ async function verifyTenantCredentials(username, password) {
   const tenant = findTenantByUsername(username);
   if (!tenant) return null;
 
-  // Verificación directa o bcrypt
   if (tenant.passwordPlain && tenant.passwordPlain === password) {
     return tenant;
   }
@@ -140,7 +147,7 @@ async function verifyTenantCredentials(username, password) {
 }
 
 function getPublicTenantsList() {
-  return Object.values(TENANTS).filter(t => t.id !== 'operador').map(t => ({
+  return [TENANTS.podologia, TENANTS.clinica, TENANTS.rehab, TENANTS.fitness].map(t => ({
     id: t.id,
     name: t.name,
     icon: t.icon,
