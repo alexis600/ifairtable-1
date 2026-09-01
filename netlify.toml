@@ -1,0 +1,15 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+# Redirigir todas las peticiones /api/* a la función Serverless de Express
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/api/:splat"
+  status = 200
+
+# Redirigir el resto de rutas al index.html del frontend (SPA)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
