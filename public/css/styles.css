@@ -447,16 +447,39 @@ textarea.form-control {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
   background: var(--surface-card);
+  margin-top: 0.5rem;
+}
+
+/* Scrollbar estilizado para la tabla */
+.table-responsive::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+  background: var(--surface-glass);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
 }
 
 .data-table {
+  min-width: 1200px; /* Asegura el ancho suficiente para todas las columnas de Airtable */
   width: 100%;
   border-collapse: collapse;
   text-align: left;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
 
 .data-table th {

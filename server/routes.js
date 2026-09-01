@@ -73,13 +73,6 @@ router.get('/auth/me', authMiddleware, (req, res) => {
   });
 });
 
-router.get('/auth/tenants', (req, res) => {
-  return res.json({
-    tenants: getPublicTenantsList(),
-    airtableConfigured: !airtableClient.isDemoMode()
-  });
-});
-
 // ==================== ESQUEMA DINÁMICO POR INQUILINO ====================
 
 router.get('/schema', authMiddleware, async (req, res) => {

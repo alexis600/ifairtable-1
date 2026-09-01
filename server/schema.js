@@ -136,6 +136,7 @@ class SchemaManager {
   isReadOnlyField(field) {
     if (field.readOnly) return true;
     if (READ_ONLY_TYPES.has(field.type)) return true;
+    if (field.type === 'multipleRecordLinks') return true; // FKs vinculadas (Turnos) gestionadas externamente
     return false;
   }
 

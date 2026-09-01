@@ -81,7 +81,6 @@ class AuthManager {
   logout() {
     this.clearSession();
     this.showLoginView(true);
-    this.loadPublicTenants();
   }
 
   showLoginView(show) {
@@ -95,39 +94,6 @@ class AuthManager {
     const userDisplay = document.getElementById('userDisplayName');
     if (userDisplay && this.currentUser) {
       userDisplay.textContent = this.currentUser.username;
-    }
-  }
-
-  async loadPublicTenants() {
-    try {
-      const res = await fetch('/api/auth/tenants');
-      if (!res.ok) return;
-      const data = await res.json();
-      const container = document.getElementById('tenantQuickSelector');
-      if (!container) return;
-
-      container.innerHTML = '';
-      data.tenants.forEach(t => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = 'tenant-quick-btn';
-        btn.innerHTML = `
-          <span class="tenant-btn-icon">${t.icon}</span>
-          <div class="tenant-btn-info">
-            <strong>${t.name}</strong>
-            <small>${t.username} / ${t.demoPassword}</small>
-          </div>
-        `;
-
-        btn.addEventListener('click', () => {
-          document.getElementById('loginUser').value = t.username;
-          document.getElementById('loginPass').value = t.demoPassword;
-        });
-
-        container.appendChild(btn);
-      });
-    } catch (err) {
-      console.warn('Error al cargar lista pública de comercios:', err);
     }
   }
 }

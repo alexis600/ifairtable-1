@@ -288,10 +288,19 @@ class DynamicUIManager {
           td.textContent = `$ ${rawVal.toLocaleString('es-AR')}`;
         } else if (col.type === 'checkbox') {
           td.textContent = rawVal ? '✅ Sí' : '❌ No';
+        } else if (col.name.toLowerCase() === 'turnos' || col.type === 'multipleRecordLinks') {
+          const count = Array.isArray(rawVal) ? rawVal.length : 0;
+          if (count > 0) {
+            td.innerHTML = `<span class="status-pill status-blueBright" title="Vinculado externamente por Telegram/Make">📅 ${count} Turno(s)</span>`;
+          } else {
+            td.innerHTML = `<span style="color: var(--text-muted); font-size: 0.8rem;">0 Turnos</span>`;
+          }
         } else if (Array.isArray(rawVal)) {
           td.textContent = `${rawVal.length} elemento(s)`;
+        } else if (col.type === 'multilineText' && rawVal) {
+          td.innerHTML = `<span title="${rawVal}" style="display: inline-block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${rawVal}</span>`;
         } else {
-          td.textContent = rawVal !== undefined && rawVal !== null ? rawVal : '-';
+          td.textContent = rawVal !== undefined && rawVal !== null && rawVal !== '' ? rawVal : '-';
         }
 
         tr.appendChild(td);
@@ -302,10 +311,10 @@ class DynamicUIManager {
       tdActions.style.textAlign = 'right';
       tdActions.innerHTML = `
         <div class="row-actions" style="justify-content: flex-end;">
-          <button class="btn-row-action edit" title="Editar registro" data-id="${rec.id}">
+          <button class="btn-row-action edit" title="Editar paciente" data-id="${rec.id}">
             ✏️ Editar
           </button>
-          <button class="btn-row-action delete" title="Eliminar registro" data-id="${rec.id}">
+          <button class="btn-row-action delete" title="Eliminar paciente" data-id="${rec.id}">
             🗑️ Eliminar
           </button>
         </div>
@@ -326,21 +335,20 @@ class DynamicUIManager {
   }
 
   getVisibleColumns() {
-    if (!this.schema) return [];
-    // Priorizamos campos visuales clave (máximo 6 columnas para no saturar)
-    const priorityNames = ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail', 'Honorarios', 'Status', 'Fecha inicio'];
-    const fields = this.schema.fields.filter(f => !f.readOnly || f.name === 'HC');
+    if (!this.schema || !this.schema.fields) return [];
+    
+    // Orden lógico prioritario de columnas
+    const priorityOrder = ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail', 'Honorarios', 'Status', 'Fecha inicio', 'Turnos', 'Notas', 'Attachments'];
+    const fields = [...this.schema.fields];
 
-    const sorted = [...fields].sort((a, b) => {
-      const idxA = priorityNames.indexOf(a.name);
-      const idxB = priorityNames.indexOf(b.name);
+    return fields.sort((a, b) => {
+      const idxA = priorityOrder.indexOf(a.name);
+      const idxB = priorityOrder.indexOf(b.name);
       if (idxA !== -1 && idxB !== -1) return idxA - idxB;
       if (idxA !== -1) return -1;
       if (idxB !== -1) return 1;
       return 0;
     });
-
-    return sorted.slice(0, 6);
   }
 
   promptDelete(record) {
