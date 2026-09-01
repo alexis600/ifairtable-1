@@ -7,6 +7,9 @@ const routes = require('./routes');
 
 const app = express();
 
+// Habilitar trust proxy para reconocer HTTPS y la IP real del cliente detrás de proxies (Render, Cloudflare, Nginx, etc.)
+app.set('trust proxy', 1);
+
 // Seguridad con Helmet (permitiendo scripts y estilos locales y fuentes de Google)
 app.use(
   helmet({
