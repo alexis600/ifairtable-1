@@ -59,7 +59,17 @@ async function sanitizePayload(rawFields, tenant) {
       case 'date':
       case 'dateTime':
         if (typeof value === 'string' && value.trim()) {
-          sanitized[key] = value.trim();
+          const val = value.trim();
+          // Detectar formato DD/MM/YYYY o DD-MM-YYYY y convertir a YYYY-MM-DD para Airtable
+          const latamMatch = val.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
+          if (latamMatch) {
+            const day = latamMatch[1].padStart(2, '0');
+            const month = latamMatch[2].padStart(2, '0');
+            const year = latamMatch[3];
+            sanitized[key] = `${year}-${month}-${day}`;
+          } else {
+            sanitized[key] = val;
+          }
         }
         break;
 

@@ -37,6 +37,8 @@ class DynamicUIManager {
       let labelText = field.name;
       if (field.isPrimary && voc.identifierLabel) {
         labelText = `${field.name} (${voc.identifierLabel})`;
+      } else if (field.type === 'date' || field.type === 'dateTime') {
+        labelText = `${field.name} (DD/MM/AAAA)`;
       }
 
       const isRequired = field.required || field.isPrimary;
@@ -101,6 +103,7 @@ class DynamicUIManager {
         case 'dateTime':
           inputEl = document.createElement('input');
           inputEl.type = 'date';
+          inputEl.lang = 'es-AR';
           inputEl.className = 'form-control';
           break;
 
@@ -191,6 +194,19 @@ class DynamicUIManager {
         const val = record.fields[field.name];
         if (field.type === 'checkbox') {
           input.checked = Boolean(val);
+        } else if (field.type === 'date' || field.type === 'dateTime') {
+          if (val) {
+            const str = String(val).split('T')[0];
+            const p = str.split(/[-/]/);
+            if (p.length === 3 && p[2].length === 4) {
+              // DD/MM/YYYY -> YYYY-MM-DD
+              input.value = `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}`;
+            } else {
+              input.value = str;
+            }
+          } else {
+            input.value = '';
+          }
         } else {
           input.value = val !== undefined && val !== null ? val : '';
         }
@@ -292,8 +308,23 @@ class DynamicUIManager {
           const count = Array.isArray(rawVal) ? rawVal.length : 0;
           if (count > 0) {
             td.innerHTML = `<span class="status-pill status-blueBright" title="Vinculado externamente por Telegram/Make">📅 ${count} Turno(s)</span>`;
+        } else if (col.type === 'date' || col.type === 'dateTime' || col.name.toLowerCase().includes('fecha')) {
+          if (rawVal) {
+            const strVal = String(rawVal).split('T')[0];
+            const parts = strVal.split(/[-/]/);
+            if (parts.length === 3) {
+              if (parts[0].length === 4) {
+                // Formato YYYY-MM-DD -> DD/MM/AAAA
+                const [y, m, d] = parts;
+                td.textContent = `${d.padStart(2, '0')}/${m.padStart(2, '0')}/${y}`;
+              } else {
+                td.textContent = strVal;
+              }
+            } else {
+              td.textContent = rawVal;
+            }
           } else {
-            td.innerHTML = `<span style="color: var(--text-muted); font-size: 0.8rem;">0 Turnos</span>`;
+            td.textContent = '-';
           }
         } else if (Array.isArray(rawVal)) {
           td.textContent = `${rawVal.length} elemento(s)`;
