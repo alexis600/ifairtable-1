@@ -1,5 +1,5 @@
 /**
- * Controlador Principal de la Aplicación (SPA)
+ * Controlador Principal de la Aplicación (SPA Multi-Tenant)
  */
 
 class App {
@@ -8,16 +8,13 @@ class App {
   }
 
   async init() {
-    // 1. Cargar configuración de rubro y temas
-    await window.configManager.loadConfig();
+    // 1. Registrar eventos del DOM primero (para asegurar que Salir, Login, etc. funcionen siempre)
+    this.bindEvents();
 
     // 2. Comprobar autenticación
     const isAuth = await window.authManager.checkAuth();
 
-    // 3. Registrar eventos del DOM
-    this.bindEvents();
-
-    // 4. Si está autenticado, cargar datos y esquema
+    // 3. Si está autenticado, cargar datos y esquema
     if (isAuth) {
       await this.loadSchemaAndData();
     }
@@ -41,39 +38,12 @@ class App {
       });
     }
 
-    // Botón Rellenar Credenciales de Prueba
-    const btnFillDemo = document.getElementById('btnFillDemo');
-    if (btnFillDemo) {
-      btnFillDemo.addEventListener('click', () => {
-        document.getElementById('loginUser').value = 'operador';
-        document.getElementById('loginPass').value = 'admin123';
-      });
-    }
-
     // Evento Logout
     const btnLogout = document.getElementById('btnLogout');
     if (btnLogout) {
       btnLogout.addEventListener('click', () => {
         window.authManager.logout();
-        this.showToast('Sesión cerrada', 'info');
-      });
-    }
-
-    // Evento Cambio de Rubro / Tema
-    const industrySelect = document.getElementById('industrySelect');
-    if (industrySelect) {
-      industrySelect.addEventListener('change', async (e) => {
-        const token = window.authManager.getToken();
-        try {
-          await window.configManager.setIndustry(e.target.value, token);
-          window.dynamicUI.renderForm();
-          if (window.dynamicUI.records) {
-            window.dynamicUI.renderTable(window.dynamicUI.records);
-          }
-          this.showToast(`Modo cambiado a: ${window.configManager.activeIndustry.name}`, 'info');
-        } catch (err) {
-          this.showToast('Error al cambiar rubro', 'error');
-        }
+        this.showToast('Sesión cerrada correctamente', 'info');
       });
     }
 
@@ -190,12 +160,12 @@ class App {
 
   async loadSchemaAndData() {
     try {
-      // 1. Obtener Esquema
+      // 1. Obtener Esquema de Airtable
       const schemaRes = await this.authFetch('/api/schema');
       const schema = await schemaRes.json();
       window.dynamicUI.setSchema(schema);
 
-      // 2. Obtener Registros
+      // 2. Obtener Registros de Airtable
       await this.loadRecords();
     } catch (err) {
       this.showToast(err.message, 'error');
@@ -209,7 +179,6 @@ class App {
       const data = await res.json();
       window.dynamicUI.renderTable(data.records);
 
-      // Mostrar badge de demo si Airtable no está configurado
       const demoBadge = document.getElementById('demoModeBadge');
       if (demoBadge) {
         demoBadge.style.display = data.isDemoMode ? 'inline-flex' : 'none';
@@ -248,7 +217,6 @@ class App {
 
         if (saveAndNew) {
           window.dynamicUI.resetFormMode();
-          // Enfocar el primer input
           const firstInput = document.querySelector('#dynamicFormGrid input');
           if (firstInput) firstInput.focus();
         } else {
@@ -292,7 +260,6 @@ class App {
   }
 }
 
-// Inicialización cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
   const app = new App();
   app.init();
