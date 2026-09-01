@@ -2,10 +2,10 @@ const schemaManager = require('./schema');
 
 /**
  * Sanitiza y valida el payload enviado por el cliente para asegurar
- * que solo se envíen campos existentes y editables en Airtable.
+ * que solo se envíen campos existentes y editables en la tabla del inquilino (tenant).
  */
-async function sanitizePayload(rawFields) {
-  const schema = await schemaManager.getSchema();
+async function sanitizePayload(rawFields, tenant) {
+  const schema = await schemaManager.getSchema(tenant);
   const allowedFieldsMap = new Map();
 
   schema.editableFields.forEach(field => {
@@ -23,9 +23,7 @@ async function sanitizePayload(rawFields) {
       continue;
     }
 
-    // Limpieza y formateo según el tipo de dato de Airtable
     if (value === null || value === undefined || value === '') {
-      // Para selectores o fechas vacías, no enviamos valor o enviamos null
       continue;
     }
 
@@ -79,10 +77,6 @@ async function sanitizePayload(rawFields) {
         }
         break;
     }
-  }
-
-  if (ignoredKeys.length > 0) {
-    console.log(`ℹ️ [PayloadSanitizer] Claves no presentes o no editables en Airtable descartadas:`, ignoredKeys);
   }
 
   return sanitized;

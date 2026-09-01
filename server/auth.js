@@ -1,30 +1,13 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 const config = require('./config');
+const { verifyTenantCredentials, getTenantById } = require('./tenants');
 
-// Precomputamos el hash de la contraseña de operador si está en texto plano
-let cachedPasswordHash = null;
-
-async function getPasswordHash() {
-  if (!cachedPasswordHash) {
-    cachedPasswordHash = await bcrypt.hash(config.OPERATOR_PASSWORD, 10);
-  }
-  return cachedPasswordHash;
-}
-
-async function verifyCredentials(username, password) {
-  if (username !== config.OPERATOR_USER) {
-    return false;
-  }
-  const hash = await getPasswordHash();
-  return bcrypt.compare(password, hash);
-}
-
-function generateToken(username) {
+function generateToken(tenant, username) {
   return jwt.sign(
     {
       username,
-      role: 'operator',
+      tenantId: tenant.id,
+      role: 'tenant_operator',
       iat: Math.floor(Date.now() / 1000)
     },
     config.JWT_SECRET,
@@ -47,7 +30,14 @@ function authMiddleware(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, config.JWT_SECRET);
+    const tenant = getTenantById(decoded.tenantId);
+
+    if (!tenant) {
+      return res.status(401).json({ error: 'Comercio / Inquilino no encontrado o desactivado' });
+    }
+
     req.user = decoded;
+    req.tenant = tenant;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Token inválido o expirado. Inicie sesión nuevamente.' });
@@ -55,7 +45,7 @@ function authMiddleware(req, res, next) {
 }
 
 module.exports = {
-  verifyCredentials,
+  verifyTenantCredentials,
   generateToken,
   authMiddleware
 };

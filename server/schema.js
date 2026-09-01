@@ -1,6 +1,5 @@
 const config = require('./config');
 
-// Tipos de Airtable considerados de solo lectura o generados por el sistema
 const READ_ONLY_TYPES = new Set([
   'formula',
   'rollup',
@@ -14,44 +13,129 @@ const READ_ONLY_TYPES = new Set([
   'count'
 ]);
 
-// Esquema fallback predeterminado para BaseBotTurnos si falla Metadata API
-const FALLBACK_FIELDS = [
-  { id: 'fldHC', name: 'HC', type: 'number', isPrimary: true, required: true, description: 'Historia Clínica o Ficha' },
-  { id: 'fldNombre', name: 'Nombre', type: 'singleLineText', required: true },
-  { id: 'fldApellido', name: 'Apellido', type: 'singleLineText', required: true },
-  { id: 'fldTelefono', name: 'Telefono', type: 'phoneNumber', required: false },
-  { id: 'fldMail', name: 'Mail', type: 'email', required: false },
-  { id: 'fldHonorarios', name: 'Honorarios', type: 'currency', required: false, options: { precision: 2, symbol: '$' } },
-  {
-    id: 'fldStatus',
-    name: 'Status',
-    type: 'singleSelect',
-    required: false,
-    options: {
-      choices: [
-        { id: 'opt1', name: 'Activo', color: 'greenBright' },
-        { id: 'opt2', name: 'En espera', color: 'yellowBright' },
-        { id: 'opt3', name: 'Pausado', color: 'orangeBright' },
-        { id: 'opt4', name: 'Inactivo', color: 'grayBright' }
-      ]
-    }
-  },
-  { id: 'fldFechaInicio', name: 'Fecha inicio', type: 'date', required: false },
-  { id: 'fldNotas', name: 'Notas', type: 'multilineText', required: false },
-  { id: 'fldTurnos', name: 'Turnos', type: 'multipleRecordLinks', readOnly: true, isLinked: true }
-];
+// Esquemas fallback predeterminados personalizados según el rubro del tenant
+const FALLBACK_FIELDS_BY_THEME = {
+  aesthetic: [
+    { id: 'fldHC', name: 'HC', type: 'number', isPrimary: true, required: true, description: 'Historia Clínica / Ficha' },
+    { id: 'fldNombre', name: 'Nombre', type: 'singleLineText', required: true },
+    { id: 'fldApellido', name: 'Apellido', type: 'singleLineText', required: true },
+    { id: 'fldTelefono', name: 'Telefono', type: 'phoneNumber', required: false },
+    { id: 'fldMail', name: 'Mail', type: 'email', required: false },
+    { id: 'fldHonorarios', name: 'Honorarios', type: 'currency', required: false, options: { precision: 2, symbol: '$' } },
+    {
+      id: 'fldStatus',
+      name: 'Status',
+      type: 'singleSelect',
+      required: false,
+      options: {
+        choices: [
+          { id: 'opt1', name: 'Activo', color: 'greenBright' },
+          { id: 'opt2', name: 'En espera', color: 'yellowBright' },
+          { id: 'opt3', name: 'Pausado', color: 'orangeBright' },
+          { id: 'opt4', name: 'Inactivo', color: 'grayBright' }
+        ]
+      }
+    },
+    { id: 'fldTratamiento', name: 'Tratamiento Principal', type: 'singleLineText', required: false },
+    { id: 'fldFechaInicio', name: 'Fecha inicio', type: 'date', required: false },
+    { id: 'fldNotas', name: 'Notas', type: 'multilineText', required: false },
+    { id: 'fldTurnos', name: 'Turnos', type: 'multipleRecordLinks', readOnly: true, isLinked: true }
+  ],
+  clinic: [
+    { id: 'fldHC', name: 'HC', type: 'number', isPrimary: true, required: true, description: 'Historia Clínica' },
+    { id: 'fldNombre', name: 'Nombre', type: 'singleLineText', required: true },
+    { id: 'fldApellido', name: 'Apellido', type: 'singleLineText', required: true },
+    { id: 'fldTelefono', name: 'Telefono', type: 'phoneNumber', required: false },
+    { id: 'fldMail', name: 'Mail', type: 'email', required: false },
+    { id: 'fldObraSocial', name: 'Obra Social / Prepaga', type: 'singleLineText', required: false },
+    { id: 'fldDiagnostico', name: 'Diagnóstico Preliminar', type: 'singleLineText', required: false },
+    {
+      id: 'fldStatus',
+      name: 'Status',
+      type: 'singleSelect',
+      required: false,
+      options: {
+        choices: [
+          { id: 'opt1', name: 'En Consulta', color: 'greenBright' },
+          { id: 'opt2', name: 'Sala de Espera', color: 'yellowBright' },
+          { id: 'opt3', name: 'Derivado', color: 'blueBright' },
+          { id: 'opt4', name: 'Alta Médica', color: 'grayBright' }
+        ]
+      }
+    },
+    { id: 'fldFechaInicio', name: 'Fecha Ingreso', type: 'date', required: false },
+    { id: 'fldNotas', name: 'Evolución / Antecedentes', type: 'multilineText', required: false }
+  ],
+  rehab: [
+    { id: 'fldLegajo', name: 'Legajo', type: 'number', isPrimary: true, required: true },
+    { id: 'fldNombre', name: 'Nombre', type: 'singleLineText', required: true },
+    { id: 'fldApellido', name: 'Apellido', type: 'singleLineText', required: true },
+    { id: 'fldTelefono', name: 'Telefono', type: 'phoneNumber', required: false },
+    { id: 'fldPatologia', name: 'Patología / Lesión', type: 'singleLineText', required: false },
+    { id: 'fldSesiones', name: 'Sesiones Totales', type: 'number', required: false },
+    {
+      id: 'fldStatus',
+      name: 'Status',
+      type: 'singleSelect',
+      required: false,
+      options: {
+        choices: [
+          { id: 'opt1', name: 'En Tratamiento', color: 'greenBright' },
+          { id: 'opt2', name: 'Evaluación', color: 'yellowBright' },
+          { id: 'opt3', name: 'Recuperado', color: 'grayBright' }
+        ]
+      }
+    },
+    { id: 'fldFechaInicio', name: 'Fecha Primera Sesión', type: 'date', required: false },
+    { id: 'fldNotas', name: 'Evolución Kinefiláctica', type: 'multilineText', required: false }
+  ],
+  fitness: [
+    { id: 'fldSocioNum', name: 'N° Socio', type: 'number', isPrimary: true, required: true },
+    { id: 'fldNombre', name: 'Nombre', type: 'singleLineText', required: true },
+    { id: 'fldApellido', name: 'Apellido', type: 'singleLineText', required: true },
+    { id: 'fldTelefono', name: 'Telefono', type: 'phoneNumber', required: false },
+    { id: 'fldMail', name: 'Mail', type: 'email', required: false },
+    {
+      id: 'fldPlan',
+      name: 'Plan de Membresía',
+      type: 'singleSelect',
+      required: false,
+      options: {
+        choices: [
+          { id: 'p1', name: 'Pase Libre Musculación', color: 'greenBright' },
+          { id: 'p2', name: 'CrossFit & Funcional', color: 'orangeBright' },
+          { id: 'p3', name: 'Pilates / Yoga', color: 'blueBright' },
+          { id: 'p4', name: 'Pase Anual VIP', color: 'yellowBright' }
+        ]
+      }
+    },
+    {
+      id: 'fldStatus',
+      name: 'Estado de Cuota',
+      type: 'singleSelect',
+      required: false,
+      options: {
+        choices: [
+          { id: 's1', name: 'Al Día', color: 'greenBright' },
+          { id: 's2', name: 'Por Vencer', color: 'yellowBright' },
+          { id: 's3', name: 'Vencido', color: 'redBright' }
+        ]
+      }
+    },
+    { id: 'fldFechaVence', name: 'Fecha Vencimiento', type: 'date', required: false },
+    { id: 'fldNotas', name: 'Apto Físico / Observaciones', type: 'multilineText', required: false }
+  ]
+};
 
 class SchemaManager {
   constructor() {
-    this.cachedSchema = null;
-    this.lastFetched = 0;
-    this.cacheTTL = 5 * 60 * 1000; // 5 minutos
+    this.cachedSchemas = new Map(); // Key: `${baseId}_${tableId}`
+    this.cacheTTL = 5 * 60 * 1000;
   }
 
   isReadOnlyField(field) {
     if (field.readOnly) return true;
     if (READ_ONLY_TYPES.has(field.type)) return true;
-    // Si es linked record pero no queremos forzar creación de links en formulario simple
     return false;
   }
 
@@ -70,14 +154,16 @@ class SchemaManager {
     };
   }
 
-  async fetchSchemaFromAirtable() {
-    if (!config.AIRTABLE_PAT) {
-      console.warn('⚠️ [SchemaManager] No se configuró AIRTABLE_PAT. Usando esquema fallback.');
-      return this.getFallbackSchema();
+  async fetchSchemaFromAirtable(tenant) {
+    const baseId = tenant.airtable.baseId;
+    const tableId = tenant.airtable.tableId;
+
+    if (!config.AIRTABLE_PAT || config.AIRTABLE_PAT.includes('patXXXXX')) {
+      return this.getFallbackSchema(tenant);
     }
 
     try {
-      const url = `https://api.airtable.com/v0/meta/bases/${config.AIRTABLE_BASE_ID}/tables`;
+      const url = `https://api.airtable.com/v0/meta/bases/${baseId}/tables`;
       const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${config.AIRTABLE_PAT}`,
@@ -86,23 +172,23 @@ class SchemaManager {
       });
 
       if (!response.ok) {
-        const errorBody = await response.text();
-        console.warn(`⚠️ [SchemaManager] Metadata API retornó ${response.status}: ${errorBody}. Cambiando a modo fallback dinámico.`);
-        return await this.inferSchemaFromRecords();
+        console.warn(`⚠️ [SchemaManager] Metadata API retornó ${response.status} para base ${baseId}. Usando fallback.`);
+        return this.getFallbackSchema(tenant);
       }
 
       const data = await response.json();
-      const table = data.tables.find(t => t.id === config.AIRTABLE_TABLE_ID || t.name.toLowerCase() === 'pacientes' || t.name.toLowerCase() === 'clientes') || data.tables[0];
+      const table = data.tables.find(t => t.id === tableId || t.name.toLowerCase() === tableId.toLowerCase()) || data.tables[0];
 
       if (!table) {
-        console.warn('⚠️ [SchemaManager] Tabla no encontrada en metadata. Usando fallback.');
-        return this.getFallbackSchema();
+        return this.getFallbackSchema(tenant);
       }
 
       const primaryFieldId = table.primaryFieldId;
       const fields = table.fields.map(f => this.mapAirtableFieldToSchema(f, primaryFieldId));
 
       return {
+        tenantId: tenant.id,
+        baseId: table.id,
         tableId: table.id,
         tableName: table.name,
         primaryFieldId: table.primaryFieldId,
@@ -112,92 +198,49 @@ class SchemaManager {
         syncedAt: new Date().toISOString()
       };
     } catch (err) {
-      console.error('❌ [SchemaManager] Error al consultar Metadata API:', err.message);
-      return await this.inferSchemaFromRecords();
+      console.error(`❌ [SchemaManager] Error en base ${baseId}:`, err.message);
+      return this.getFallbackSchema(tenant);
     }
   }
 
-  async inferSchemaFromRecords() {
-    try {
-      const url = `https://api.airtable.com/v0/${config.AIRTABLE_BASE_ID}/${config.AIRTABLE_TABLE_ID}?maxRecords=5`;
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${config.AIRTABLE_PAT}`
-        }
-      });
+  getFallbackSchema(tenant) {
+    const fields = FALLBACK_FIELDS_BY_THEME[tenant.theme] || FALLBACK_FIELDS_BY_THEME.aesthetic;
+    const primary = fields.find(f => f.isPrimary) || fields[0];
 
-      if (!response.ok) {
-        return this.getFallbackSchema();
-      }
-
-      const data = await response.json();
-      const fieldsMap = new Map();
-
-      // Sembrar con fallback primero
-      FALLBACK_FIELDS.forEach(f => fieldsMap.set(f.name, { ...f }));
-
-      // Enriquecer con campos observados en los registros reales
-      if (data.records && data.records.length > 0) {
-        data.records.forEach(rec => {
-          Object.keys(rec.fields).forEach(key => {
-            if (!fieldsMap.has(key)) {
-              const val = rec.fields[key];
-              let detectedType = 'singleLineText';
-              if (typeof val === 'number') detectedType = 'number';
-              else if (typeof val === 'boolean') detectedType = 'checkbox';
-              else if (Array.isArray(val)) detectedType = 'multipleRecordLinks';
-
-              fieldsMap.set(key, {
-                id: `inferred_${key}`,
-                name: key,
-                type: detectedType,
-                isPrimary: false,
-                readOnly: Array.isArray(val) && val[0] && typeof val[0] === 'string' && val[0].startsWith('rec')
-              });
-            }
-          });
-        });
-      }
-
-      const fields = Array.from(fieldsMap.values());
-      return {
-        tableId: config.AIRTABLE_TABLE_ID,
-        tableName: 'Pacientes',
-        primaryFieldId: 'fldHC',
-        fields,
-        editableFields: fields.filter(f => !f.readOnly),
-        source: 'inferred_records',
-        syncedAt: new Date().toISOString()
-      };
-    } catch (err) {
-      return this.getFallbackSchema();
-    }
-  }
-
-  getFallbackSchema() {
     return {
-      tableId: config.AIRTABLE_TABLE_ID,
-      tableName: 'Pacientes / Clientes',
-      primaryFieldId: 'fldHC',
-      fields: FALLBACK_FIELDS,
-      editableFields: FALLBACK_FIELDS.filter(f => !f.readOnly),
-      source: 'static_fallback',
+      tenantId: tenant.id,
+      baseId: tenant.airtable.baseId,
+      tableId: tenant.airtable.tableId,
+      tableName: tenant.name,
+      primaryFieldId: primary ? primary.id : 'fldHC',
+      fields,
+      editableFields: fields.filter(f => !f.readOnly),
+      source: 'static_fallback_multi_tenant',
       syncedAt: new Date().toISOString()
     };
   }
 
-  async getSchema(forceRefresh = false) {
+  async getSchema(tenant, forceRefresh = false) {
+    const key = `${tenant.airtable.baseId}_${tenant.airtable.tableId}`;
     const now = Date.now();
-    if (!this.cachedSchema || forceRefresh || (now - this.lastFetched > this.cacheTTL)) {
-      this.cachedSchema = await this.fetchSchemaFromAirtable();
-      this.lastFetched = now;
+    const cached = this.cachedSchemas.get(key);
+
+    if (!cached || forceRefresh || (now - cached.timestamp > this.cacheTTL)) {
+      const schema = await this.fetchSchemaFromAirtable(tenant);
+      this.cachedSchemas.set(key, { schema, timestamp: now });
+      return schema;
     }
-    return this.cachedSchema;
+
+    return cached.schema;
   }
 
-  invalidateCache() {
-    this.cachedSchema = null;
-    this.lastFetched = 0;
+  invalidateCache(tenant) {
+    if (tenant && tenant.airtable) {
+      const key = `${tenant.airtable.baseId}_${tenant.airtable.tableId}`;
+      this.cachedSchemas.delete(key);
+    } else {
+      this.cachedSchemas.clear();
+    }
   }
 }
 

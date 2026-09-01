@@ -1,22 +1,18 @@
 const express = require('express');
 const router = express.Router();
 const rateLimit = require('express-rate-limit');
-const config = require('./config');
-const { verifyCredentials, generateToken, authMiddleware } = require('./auth');
+const { verifyTenantCredentials, generateToken, authMiddleware } = require('./auth');
+const { getPublicTenantsList } = require('./tenants');
 const schemaManager = require('./schema');
 const airtableClient = require('./airtable');
 
-// Rate limiting para login (máximo 10 intentos cada 15 min)
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 15,
+  max: 30,
   message: { error: 'Demasiados intentos de acceso. Por favor, reintente en 15 minutos.' }
 });
 
-// Variable en memoria para cambiar el rubro dinámicamente si el usuario lo desea
-let currentIndustryId = config.DEFAULT_INDUSTRY;
-
-// ==================== RUTAS DE AUTENTICACIÓN ====================
+// ==================== AUTENTICACIÓN MULTI-TENANT ====================
 
 router.post('/auth/login', loginLimiter, async (req, res) => {
   const { username, password } = req.body;
@@ -26,14 +22,27 @@ router.post('/auth/login', loginLimiter, async (req, res) => {
   }
 
   try {
-    const isValid = await verifyCredentials(username, password);
-    if (!isValid) {
-      return res.status(401).json({ error: 'Credenciales inválidas' });
+    const tenant = await verifyTenantCredentials(username, password);
+    if (!tenant) {
+      return res.status(401).json({ error: 'Credenciales inválidas para este comercio' });
     }
 
-    const token = generateToken(username);
+    const token = generateToken(tenant, username);
+
     return res.json({
       token,
+      tenant: {
+        id: tenant.id,
+        name: tenant.name,
+        theme: tenant.theme,
+        icon: tenant.icon,
+        tagline: tenant.tagline,
+        vocabulary: tenant.vocabulary,
+        airtable: {
+          baseId: tenant.airtable.baseId,
+          tableId: tenant.airtable.tableId
+        }
+      },
       user: {
         username,
         role: 'operator'
@@ -48,50 +57,46 @@ router.post('/auth/login', loginLimiter, async (req, res) => {
 router.get('/auth/me', authMiddleware, (req, res) => {
   return res.json({
     authenticated: true,
-    user: req.user
+    user: req.user,
+    tenant: {
+      id: req.tenant.id,
+      name: req.tenant.name,
+      theme: req.tenant.theme,
+      icon: req.tenant.icon,
+      tagline: req.tenant.tagline,
+      vocabulary: req.tenant.vocabulary,
+      airtable: {
+        baseId: req.tenant.airtable.baseId,
+        tableId: req.tenant.airtable.tableId
+      }
+    }
   });
 });
 
-// ==================== CONFIGURACIÓN Y VOCABULARIO ====================
-
-router.get('/config', (req, res) => {
-  const currentIndustry = config.INDUSTRIES[currentIndustryId] || config.INDUSTRIES.estetica;
+router.get('/auth/tenants', (req, res) => {
   return res.json({
-    activeIndustry: currentIndustry,
-    allIndustries: Object.values(config.INDUSTRIES),
+    tenants: getPublicTenantsList(),
     airtableConfigured: !airtableClient.isDemoMode()
   });
 });
 
-router.post('/config/industry', authMiddleware, (req, res) => {
-  const { industryId } = req.body;
-  if (config.INDUSTRIES[industryId]) {
-    currentIndustryId = industryId;
-    return res.json({
-      success: true,
-      activeIndustry: config.INDUSTRIES[industryId]
-    });
-  }
-  return res.status(400).json({ error: 'Rubro no válido' });
-});
-
-// ==================== ESQUEMA DINÁMICO ====================
+// ==================== ESQUEMA DINÁMICO POR INQUILINO ====================
 
 router.get('/schema', authMiddleware, async (req, res) => {
   try {
-    const schema = await schemaManager.getSchema();
+    const schema = await schemaManager.getSchema(req.tenant);
     return res.json(schema);
   } catch (err) {
-    return res.status(500).json({ error: 'Error al obtener el esquema de Airtable' });
+    return res.status(500).json({ error: 'Error al obtener el esquema de Airtable para este comercio' });
   }
 });
 
 router.post('/schema/refresh', authMiddleware, async (req, res) => {
   try {
-    const schema = await schemaManager.getSchema(true);
+    const schema = await schemaManager.getSchema(req.tenant, true);
     return res.json({
       success: true,
-      message: 'Esquema sincronizado exitosamente con Airtable',
+      message: `Esquema de ${req.tenant.name} sincronizado exitosamente con Airtable`,
       schema
     });
   } catch (err) {
@@ -99,14 +104,14 @@ router.post('/schema/refresh', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== CRUD DE REGISTROS ====================
+// ==================== CRUD AISLADO POR INQUILINO ====================
 
 router.get('/records', authMiddleware, async (req, res) => {
   const search = req.query.search || '';
   const maxRecords = Number(req.query.maxRecords) || 100;
 
   try {
-    const result = await airtableClient.listRecords({ search, maxRecords });
+    const result = await airtableClient.listRecords(req.tenant, { search, maxRecords });
     return res.json(result);
   } catch (err) {
     return res.status(500).json({ error: err.message || 'Error al listar registros' });
@@ -115,10 +120,10 @@ router.get('/records', authMiddleware, async (req, res) => {
 
 router.get('/records/:id', authMiddleware, async (req, res) => {
   try {
-    const result = await airtableClient.getRecord(req.params.id);
+    const result = await airtableClient.getRecord(req.tenant, req.params.id);
     return res.json(result);
   } catch (err) {
-    return res.status(404).json({ error: 'Registro no encontrado' });
+    return res.status(404).json({ error: 'Registro no encontrado en este comercio' });
   }
 });
 
@@ -130,7 +135,7 @@ router.post('/records', authMiddleware, async (req, res) => {
   }
 
   try {
-    const result = await airtableClient.createRecord(fields);
+    const result = await airtableClient.createRecord(req.tenant, fields);
     return res.status(201).json(result);
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Error al crear el registro' });
@@ -145,7 +150,7 @@ router.patch('/records/:id', authMiddleware, async (req, res) => {
   }
 
   try {
-    const result = await airtableClient.updateRecord(req.params.id, fields);
+    const result = await airtableClient.updateRecord(req.tenant, req.params.id, fields);
     return res.json(result);
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Error al actualizar el registro' });
@@ -154,7 +159,7 @@ router.patch('/records/:id', authMiddleware, async (req, res) => {
 
 router.delete('/records/:id', authMiddleware, async (req, res) => {
   try {
-    const result = await airtableClient.deleteRecord(req.params.id);
+    const result = await airtableClient.deleteRecord(req.tenant, req.params.id);
     return res.json(result);
   } catch (err) {
     return res.status(400).json({ error: err.message || 'Error al eliminar el registro' });

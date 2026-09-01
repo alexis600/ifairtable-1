@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Portal de Gestión Airtable | Multirrubro Resiliente</title>
-  <meta name="description" content="Portal web moderno, seguro y resiliente para la gestión de pacientes y turnos en Airtable">
+  <title>Portal Multi-Tenant Airtable | Plataforma SaaS</title>
+  <meta name="description" content="Portal web moderno, seguro y multirrubro con aislamiento de datos y esquema dinámico en Airtable">
   <link rel="stylesheet" href="css/variables.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
@@ -21,16 +21,10 @@
     </div>
 
     <div class="nav-actions">
-      <!-- Selector de Rubro / Tema White-Label -->
-      <div class="industry-selector" title="Seleccionar rubro o modelo de negocio">
-        <span>🏢 Rubro:</span>
-        <select id="industrySelect" class="industry-select">
-          <option value="estetica">🌸 Estética & Spa</option>
-          <option value="clinica">🏥 Centro Médico / Sanatorio</option>
-          <option value="rehab">🌿 Rehabilitación & Fisio</option>
-          <option value="fitness">⚡ Gimnasio / Fitness</option>
-        </select>
-      </div>
+      <!-- Badge de Comercio Activo -->
+      <span class="tenant-badge" id="currentTenantBadge" title="Comercio activo en sesión">
+        🌸 Estética Glam
+      </span>
 
       <!-- Botón Sincronizar Esquema con Airtable -->
       <button id="btnSyncSchema" class="btn-icon sync-btn" title="Detectar columnas nuevas o modificadas en Airtable">
@@ -71,15 +65,15 @@
         <div class="stat-icon-wrapper">✨</div>
         <div class="stat-content">
           <span class="stat-value" id="statActiveRecords">0</span>
-          <span class="stat-label">Activos en Tratamiento</span>
+          <span class="stat-label">Activos en Gestión</span>
         </div>
       </div>
 
       <div class="stat-card">
-        <div class="stat-icon-wrapper">📅</div>
+        <div class="stat-icon-wrapper">☁️</div>
         <div class="stat-content">
           <span class="stat-value">Airtable Cloud</span>
-          <span class="stat-label">BaseBotTurnos Conectada</span>
+          <span class="stat-label">Base de Datos Conectada</span>
         </div>
       </div>
     </section>
@@ -88,13 +82,13 @@
     <section class="card" id="formSection">
       <div class="card-header">
         <div class="card-title-group">
-          <h2 class="card-title" id="formTitle" data-voc="newAction">Nuevo Cliente</h2>
+          <h2 class="card-title" id="formTitle" data-voc="newAction">Nuevo Registro</h2>
           <span id="formModeBadge" class="badge-mode" style="display: none;">✏️ Modo Edición</span>
         </div>
       </div>
 
       <form id="patientForm" novalidate>
-        <!-- Los inputs se generan automáticamente según las columnas de Airtable -->
+        <!-- Los inputs se generan automáticamente según las columnas de la tabla del comercio en Airtable -->
         <div class="dynamic-form-grid" id="dynamicFormGrid"></div>
 
         <div class="form-actions">
@@ -118,7 +112,7 @@
     <section class="card">
       <div class="card-header">
         <div class="card-title-group">
-          <h2 class="card-title" data-voc="entityPlural">Clientes Registrados</h2>
+          <h2 class="card-title" data-voc="entityPlural">Registros</h2>
         </div>
       </div>
 
@@ -158,17 +152,17 @@
     </div>
   </div>
 
-  <!-- ==================== VISTA DE AUTENTICACIÓN (LOGIN) ==================== -->
+  <!-- ==================== VISTA DE AUTENTICACIÓN (LOGIN MULTI-TENANT) ==================== -->
   <div class="login-view" id="loginView" style="display: none;">
     <div class="login-card">
-      <div class="login-brand-icon" id="loginBrandIcon">🌸</div>
-      <h2 class="login-title" id="loginBrandTitle">Acceso Operador</h2>
-      <p class="login-subtitle">Ingrese sus credenciales seguras para acceder al portal</p>
+      <div class="login-brand-icon" id="loginBrandIcon">🏢</div>
+      <h2 class="login-title">Portal de Acceso</h2>
+      <p class="login-subtitle">Inicie sesión con las credenciales de su comercio</p>
 
       <form id="loginForm" class="login-form">
         <div class="form-group">
           <label class="form-label" for="loginUser">Usuario</label>
-          <input type="text" id="loginUser" class="form-control" required placeholder="operador" autocomplete="username">
+          <input type="text" id="loginUser" class="form-control" required placeholder="estetica_admin" autocomplete="username">
         </div>
 
         <div class="form-group">
@@ -176,18 +170,18 @@
           <input type="password" id="loginPass" class="form-control" required placeholder="••••••••" autocomplete="current-password">
         </div>
 
-        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.5rem;">
+        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 0.25rem;">
           🔑 Iniciar Sesión
         </button>
-
-        <button type="button" id="btnFillDemo" class="btn-secondary" style="width: 100%; justify-content: center; font-size: 0.8rem;">
-          ⚡ Usar Credenciales Demo (operador / admin123)
-        </button>
-
-        <div class="login-hint">
-          🔒 Conexión segura por token JWT y protección contra fuerza bruta.
-        </div>
       </form>
+
+      <!-- Selector Rápido de Comercios Demo -->
+      <div class="tenant-quick-section">
+        <div class="tenant-quick-title">⚡ Acceso Rápido a Comercios Demo:</div>
+        <div class="tenant-quick-grid" id="tenantQuickSelector">
+          <!-- Botones inyectados dinámicamente por auth.js -->
+        </div>
+      </div>
     </div>
   </div>
 
