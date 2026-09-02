@@ -308,6 +308,9 @@ class DynamicUIManager {
           const count = Array.isArray(rawVal) ? rawVal.length : 0;
           if (count > 0) {
             td.innerHTML = `<span class="status-pill status-blueBright" title="Vinculado externamente por Telegram/Make">📅 ${count} Turno(s)</span>`;
+          } else {
+            td.innerHTML = `<span style="color: var(--text-muted); font-size: 0.8rem;">0 Turnos</span>`;
+          }
         } else if (col.type === 'date' || col.type === 'dateTime' || col.name.toLowerCase().includes('fecha')) {
           if (rawVal) {
             const strVal = String(rawVal).split('T')[0];
