@@ -80,7 +80,7 @@ class AuthManager {
 
   logout() {
     this.clearSession();
-    this.showLoginView(true);
+    window.location.reload();
   }
 
   showLoginView(show) {

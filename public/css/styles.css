@@ -269,7 +269,7 @@ body {
 }
 
 /* ==========================================================
-   FORMULARIO DINÁMICO (PERFECCIÓN MOBILE-FIRST)
+   FORMULARIO DINÁMICO (PERFECCIÓN MOBILE-FIRST & THEME RESILIENTE)
    ========================================================== */
 .dynamic-form-grid {
   display: grid;
@@ -300,7 +300,7 @@ body {
   font-weight: 700;
 }
 
-/* Inputs, Selects y Textareas unificados y pulidos al 100% */
+/* Inputs, Selects y Textareas unificados con tokens de tema */
 .form-control {
   width: 100% !important;
   box-sizing: border-box !important;
@@ -310,8 +310,8 @@ body {
   font-family: inherit;
   font-size: 16px !important; /* Estricto 16px para evitar auto-zoom molesto en iOS */
   line-height: 1.4;
-  color: var(--text-main);
-  background-color: #ffffff;
+  color: var(--text-main) !important;
+  background-color: var(--surface-input) !important;
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-sm);
   outline: none;
@@ -323,13 +323,12 @@ body {
 
 .form-control:focus {
   border-color: var(--border-focus);
-  background-color: #ffffff;
   box-shadow: 0 0 0 3.5px var(--primary-glow);
 }
 
 /* Select con flecha chevron moderna y limpia */
 select.form-control {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23888888'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 1rem center;
   background-size: 1rem;
@@ -341,9 +340,9 @@ select.form-control {
 input[type="date"].form-control {
   font-family: inherit;
   text-transform: uppercase;
-  color: var(--text-main);
+  color: var(--text-main) !important;
   cursor: pointer;
-  background-color: #ffffff;
+  background-color: var(--surface-input) !important;
 }
 
 /* Textarea adaptable */
@@ -365,6 +364,7 @@ textarea.form-control {
   font-weight: 500;
   padding: 0.5rem 0;
   min-height: 44px;
+  color: var(--text-main);
 }
 
 .checkbox-label input[type="checkbox"] {
@@ -415,7 +415,7 @@ textarea.form-control {
 }
 
 .btn-secondary {
-  background: #ffffff;
+  background: var(--surface-input);
   color: var(--text-main);
   border: 1.5px solid var(--border-color);
 }
@@ -435,7 +435,7 @@ textarea.form-control {
 }
 
 /* ==========================================================
-   TABLA DINÁMICA DE REGISTROS
+   TABLA DINÁMICA DE REGISTROS (ALTO CONTRASTE Y ADAPTABLE)
    ========================================================== */
 .table-toolbar {
   display: flex;
@@ -456,7 +456,7 @@ textarea.form-control {
   padding: 0.65rem 1rem 0.65rem 2.6rem;
   font-family: inherit;
   font-size: 16px !important;
-  background: #ffffff;
+  background: var(--surface-input);
   border: 1.5px solid var(--border-color);
   border-radius: var(--radius-full);
   color: var(--text-main);
@@ -486,7 +486,7 @@ textarea.form-control {
   -webkit-overflow-scrolling: touch;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--surface-table);
   margin-top: 0.25rem;
 }
 
@@ -495,7 +495,7 @@ textarea.form-control {
 }
 
 .table-responsive::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.03);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .table-responsive::-webkit-scrollbar-thumb {
@@ -513,8 +513,8 @@ textarea.form-control {
 }
 
 .data-table th {
-  background: var(--primary-light);
-  color: var(--text-main);
+  background: var(--table-header-bg);
+  color: var(--table-header-text);
   font-weight: 700;
   padding: 0.8rem 0.9rem;
   border-bottom: 2px solid var(--border-color);
@@ -528,7 +528,7 @@ textarea.form-control {
 }
 
 .data-table tbody tr:hover {
-  background: rgba(0, 0, 0, 0.015);
+  background: var(--table-row-hover);
 }
 
 /* Status Pills */
@@ -573,7 +573,7 @@ textarea.form-control {
 }
 
 .btn-row-action {
-  background: #ffffff;
+  background: var(--surface-btn-action);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-sm);
   padding: 0.4rem 0.65rem;
@@ -616,7 +616,7 @@ textarea.form-control {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -634,7 +634,8 @@ textarea.form-control {
 }
 
 .modal-dialog {
-  background: #ffffff;
+  background: var(--surface-modal);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 1.5rem 1.25rem;
@@ -661,6 +662,7 @@ textarea.form-control {
   font-size: 1.15rem;
   font-weight: 700;
   margin-bottom: 0.4rem;
+  color: var(--text-main);
 }
 
 .modal-body-text {
@@ -690,7 +692,8 @@ textarea.form-control {
 }
 
 .login-card {
-  background: #ffffff;
+  background: var(--surface-card);
+  color: var(--text-main);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   padding: 1.75rem 1.25rem;
@@ -709,6 +712,7 @@ textarea.form-control {
 .login-title {
   font-size: 1.35rem;
   font-weight: 700;
+  color: var(--text-main);
   margin-bottom: 0.2rem;
 }
 
@@ -745,15 +749,18 @@ textarea.form-control {
   width: 100%;
   padding: 0.75rem 1rem;
   border-radius: var(--radius-sm);
-  background: #ffffff;
-  color: #1f2937;
+  background: var(--surface-card);
+  color: var(--text-main);
   font-size: 0.85rem;
   font-weight: 600;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   gap: 0.65rem;
   border-left: 4px solid;
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
   transform: translateY(100%);
   animation: slideUpToast 0.3s forwards cubic-bezier(0.16, 1, 0.3, 1);
 }

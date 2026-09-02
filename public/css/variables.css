@@ -28,6 +28,10 @@ body.theme-aesthetic, :root {
   --surface-card: rgba(255, 255, 255, 0.92);
   --surface-card-hover: #ffffff;
   --surface-glass: rgba(255, 255, 255, 0.7);
+  --surface-input: #ffffff;
+  --surface-table: #ffffff;
+  --surface-modal: #ffffff;
+  --surface-btn-action: #ffffff;
   --border-color: rgba(243, 215, 222, 0.6);
   --border-focus: #f43f5e;
   
@@ -36,6 +40,10 @@ body.theme-aesthetic, :root {
   --primary-light: #ffe4e6;
   --primary-text: #ffffff;
   --primary-glow: rgba(225, 29, 72, 0.25);
+  
+  --table-header-bg: #ffe4e6;
+  --table-header-text: #1f2937;
+  --table-row-hover: rgba(225, 29, 72, 0.03);
   
   --accent: #d97706;
   --accent-light: #fef3c7;
@@ -58,6 +66,10 @@ body.theme-clinic {
   --surface-card: rgba(255, 255, 255, 0.94);
   --surface-card-hover: #ffffff;
   --surface-glass: rgba(255, 255, 255, 0.75);
+  --surface-input: #ffffff;
+  --surface-table: #ffffff;
+  --surface-modal: #ffffff;
+  --surface-btn-action: #ffffff;
   --border-color: rgba(186, 230, 253, 0.7);
   --border-focus: #0284c7;
   
@@ -66,6 +78,10 @@ body.theme-clinic {
   --primary-light: #e0f2fe;
   --primary-text: #ffffff;
   --primary-glow: rgba(2, 132, 199, 0.25);
+  
+  --table-header-bg: #e0f2fe;
+  --table-header-text: #0f172a;
+  --table-row-hover: rgba(2, 132, 199, 0.03);
   
   --accent: #0d9488;
   --accent-light: #ccfbf1;
@@ -88,6 +104,10 @@ body.theme-rehab {
   --surface-card: rgba(255, 255, 255, 0.93);
   --surface-card-hover: #ffffff;
   --surface-glass: rgba(255, 255, 255, 0.75);
+  --surface-input: #ffffff;
+  --surface-table: #ffffff;
+  --surface-modal: #ffffff;
+  --surface-btn-action: #ffffff;
   --border-color: rgba(209, 231, 214, 0.7);
   --border-focus: #059669;
   
@@ -96,6 +116,10 @@ body.theme-rehab {
   --primary-light: #d1fae5;
   --primary-text: #ffffff;
   --primary-glow: rgba(5, 150, 105, 0.25);
+  
+  --table-header-bg: #d1fae5;
+  --table-header-text: #1c1917;
+  --table-row-hover: rgba(5, 150, 105, 0.03);
   
   --accent: #b45309;
   --accent-light: #fef3c7;
@@ -109,23 +133,31 @@ body.theme-rehab {
 }
 
 /* ==========================================================
-   TEMA 4: GIMNASIO & FITNESS
+   TEMA 4: GIMNASIO & FITNESS (DARK MODE PREMIUM)
    Dark mode elegante, acentos lima energéticos y alto contraste
    ========================================================== */
 body.theme-fitness {
   --bg-main: #0b0f19;
   --bg-gradient: linear-gradient(135deg, #090d16 0%, #0f172a 50%, #111827 100%);
-  --surface-card: rgba(17, 24, 39, 0.88);
-  --surface-card-hover: rgba(31, 41, 55, 0.95);
-  --surface-glass: rgba(17, 24, 39, 0.65);
-  --border-color: rgba(55, 65, 81, 0.8);
+  --surface-card: #111827;
+  --surface-card-hover: #1f2937;
+  --surface-glass: rgba(17, 24, 39, 0.85);
+  --surface-input: #1e293b;
+  --surface-table: #0f172a;
+  --surface-modal: #1e293b;
+  --surface-btn-action: #1e293b;
+  --border-color: #374151;
   --border-focus: #84cc16;
   
   --primary: #84cc16;
   --primary-hover: #65a30d;
-  --primary-light: rgba(132, 204, 22, 0.15);
+  --primary-light: rgba(132, 204, 22, 0.18);
   --primary-text: #0f172a;
   --primary-glow: rgba(132, 204, 22, 0.35);
+  
+  --table-header-bg: rgba(132, 204, 22, 0.15);
+  --table-header-text: #bef264;
+  --table-row-hover: rgba(255, 255, 255, 0.04);
   
   --accent: #f97316;
   --accent-light: rgba(249, 115, 22, 0.15);
