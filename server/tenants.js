@@ -8,7 +8,33 @@ const bcrypt = require('bcryptjs');
  * SEGURIDAD: Ninguna contraseña se almacena en texto plano. Solo hashes de Bcrypt irreversibles.
  */
 const TENANTS = {
-  // 🌸 Cliente 1 (Real): Centro de Podología & Estética
+  // ⚡ Cliente Activo Testing: Gimnasio & Estudio Fitness (Alexis)
+  'fitness': {
+    id: 'fitness',
+    name: 'Gimnasio & Estudio Fitness Pro',
+    theme: 'fitness',
+    icon: '⚡',
+    tagline: 'Control de Socios, Membresías y Turnos',
+    username: 'alexis',
+    // Bcrypt hash para 'testing'
+    passwordHash: '$2a$10$SAbOqAbqxZVxe7hYQ4CqXO7NrhEZuFr0FhUgvKLjvx8CvwINbXWxu',
+    vocabulary: {
+      entitySingular: 'Socio',
+      entityPlural: 'Socios',
+      newAction: 'Nuevo Socio',
+      editAction: 'Editar Socio',
+      identifierLabel: 'N° Socio / DNI',
+      eventsLabel: 'Clases / Turnos',
+      primarySearchPlaceholder: 'Buscar por nombre, apellido, teléfono o socio...'
+    },
+    // Asociado a la tabla en curso de testing en Airtable:
+    airtable: {
+      baseId: process.env.AIRTABLE_BASE_ID || 'appljMcMjD7reOMsg',
+      tableId: process.env.AIRTABLE_TABLE_ID || 'tblwNKUcveOLycUye'
+    }
+  },
+
+  // 🌸 Cliente 2: Centro de Podología & Estética (María Elena - Base propia a definir)
   'podologia': {
     id: 'podologia',
     name: 'Centro de Podología & Manicuría',
@@ -27,13 +53,14 @@ const TENANTS = {
       eventsLabel: 'Turnos / Tratamientos',
       primarySearchPlaceholder: 'Buscar por nombre, apellido, teléfono o HC...'
     },
+    // Base a asignar cuando crees su workspace de Airtable:
     airtable: {
-      baseId: process.env.AIRTABLE_BASE_ID || 'appljMcMjD7reOMsg',
-      tableId: process.env.AIRTABLE_TABLE_ID || 'tblwNKUcveOLycUye'
+      baseId: process.env.AIRTABLE_PODO_BASE_ID || 'appPodologiaBasePendiente',
+      tableId: process.env.AIRTABLE_PODO_TABLE_ID || 'tblPacientesPodoPendiente'
     }
   },
 
-  // 🏥 Cliente 2: Sanatorio & Centro Médico
+  // 🏥 Cliente 3: Sanatorio & Centro Médico
   'clinica': {
     id: 'clinica',
     name: 'Sanatorio & Centro Médico Belgrano',
@@ -57,7 +84,7 @@ const TENANTS = {
     }
   },
 
-  // 🌿 Cliente 3: Centro de Rehabilitación & Kinesiología
+  // 🌿 Cliente 4: Centro de Rehabilitación & Kinesiología
   'rehab': {
     id: 'rehab',
     name: 'Centro de Rehabilitación & Kinesiología',
@@ -78,30 +105,6 @@ const TENANTS = {
     airtable: {
       baseId: 'appRehabDemoBase',
       tableId: 'tblPacientesRehab'
-    }
-  },
-
-  // ⚡ Cliente 4: Gimnasio & Estudio Fitness
-  'fitness': {
-    id: 'fitness',
-    name: 'Gimnasio & Estudio Fitness Pro',
-    theme: 'fitness',
-    icon: '⚡',
-    tagline: 'Control de Socios, Membresías y Reservas',
-    username: 'gym_admin',
-    passwordHash: '$2a$10$w0uGqK0t0m8b8M9W1qPqSeuVdD3wI2A2s9UqL8Y7H1O1b6L6N5D0W',
-    vocabulary: {
-      entitySingular: 'Socio',
-      entityPlural: 'Socios',
-      newAction: 'Nuevo Socio',
-      editAction: 'Editar Socio',
-      identifierLabel: 'N° Socio / DNI',
-      eventsLabel: 'Clases / Turnos',
-      primarySearchPlaceholder: 'Buscar por nombre, socio o DNI...'
-    },
-    airtable: {
-      baseId: 'appGymDemoBase',
-      tableId: 'tblSociosGimnasio'
     }
   }
 };
