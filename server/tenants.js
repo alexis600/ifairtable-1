@@ -55,8 +55,8 @@ const TENANTS = {
     },
     // Base a asignar cuando crees su workspace de Airtable:
     airtable: {
-      baseId: process.env.AIRTABLE_PODO_BASE_ID || 'appPodologiaBasePendiente',
-      tableId: process.env.AIRTABLE_PODO_TABLE_ID || 'tblPacientesPodoPendiente'
+      baseId: process.env.AIRTABLE_PODO_BASE_ID || 'appUI1CEYeCJoqhkw',
+      tableId: process.env.AIRTABLE_PODO_TABLE_ID || 'tblwNKUcveOLycUye'
     }
   },
 
