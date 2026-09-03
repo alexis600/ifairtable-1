@@ -370,19 +370,8 @@ class DynamicUIManager {
 
   getVisibleColumns() {
     if (!this.schema || !this.schema.fields) return [];
-    
-    // Orden lógico prioritario de columnas
-    const priorityOrder = ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail', 'Honorarios', 'Status', 'Fecha inicio', 'Turnos', 'Notas', 'Attachments'];
-    const fields = [...this.schema.fields];
-
-    return fields.sort((a, b) => {
-      const idxA = priorityOrder.indexOf(a.name);
-      const idxB = priorityOrder.indexOf(b.name);
-      if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-      if (idxA !== -1) return -1;
-      if (idxB !== -1) return 1;
-      return 0;
-    });
+    // Respetar el orden natural exacto de columnas definido en Airtable
+    return [...this.schema.fields];
   }
 
   promptDelete(record) {
