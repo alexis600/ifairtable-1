@@ -66,6 +66,9 @@ class DynamicUIManager {
               inputEl.appendChild(opt);
             });
           }
+          if (field.defaultValue) {
+            inputEl.value = field.defaultValue;
+          }
           break;
 
         case 'checkbox':
@@ -74,11 +77,13 @@ class DynamicUIManager {
           inputEl = document.createElement('input');
           inputEl.type = 'checkbox';
           inputEl.className = 'form-checkbox';
+          if (field.defaultValue) inputEl.checked = Boolean(field.defaultValue);
           checkWrapper.appendChild(inputEl);
           checkWrapper.appendChild(document.createTextNode(` ${field.name}`));
           group.appendChild(checkWrapper);
           inputEl.id = `field_${field.id}`;
           inputEl.name = field.name;
+          inputEl.addEventListener('change', () => inputEl.classList.remove('is-invalid'));
           container.appendChild(group);
           return;
 
@@ -87,6 +92,7 @@ class DynamicUIManager {
           inputEl = document.createElement('textarea');
           inputEl.className = 'form-control';
           inputEl.placeholder = `Ingrese ${field.name.toLowerCase()}...`;
+          if (field.defaultValue) inputEl.value = field.defaultValue;
           break;
 
         case 'number':
@@ -97,6 +103,7 @@ class DynamicUIManager {
           inputEl.step = field.type === 'currency' ? '0.01' : '1';
           inputEl.className = 'form-control';
           inputEl.placeholder = field.type === 'currency' ? '$ 0.00' : '0';
+          if (field.defaultValue !== null && field.defaultValue !== undefined) inputEl.value = field.defaultValue;
           break;
 
         case 'date':
@@ -105,6 +112,7 @@ class DynamicUIManager {
           inputEl.type = 'date';
           inputEl.lang = 'es-AR';
           inputEl.className = 'form-control';
+          if (field.defaultValue) inputEl.value = field.defaultValue;
           break;
 
         case 'email':
@@ -112,6 +120,7 @@ class DynamicUIManager {
           inputEl.type = 'email';
           inputEl.className = 'form-control';
           inputEl.placeholder = 'ejemplo@correo.com';
+          if (field.defaultValue) inputEl.value = field.defaultValue;
           break;
 
         case 'phoneNumber':
@@ -119,6 +128,7 @@ class DynamicUIManager {
           inputEl.type = 'tel';
           inputEl.className = 'form-control';
           inputEl.placeholder = '+54 9 11 ...';
+          if (field.defaultValue) inputEl.value = field.defaultValue;
           break;
 
         default:
@@ -126,12 +136,16 @@ class DynamicUIManager {
           inputEl.type = 'text';
           inputEl.className = 'form-control';
           inputEl.placeholder = `Ingrese ${field.name.toLowerCase()}...`;
+          if (field.defaultValue) inputEl.value = field.defaultValue;
           break;
       }
 
       inputEl.id = `field_${field.id}`;
       inputEl.name = field.name;
       if (isRequired) inputEl.required = true;
+
+      inputEl.addEventListener('input', () => inputEl.classList.remove('is-invalid'));
+      inputEl.addEventListener('change', () => inputEl.classList.remove('is-invalid'));
 
       group.appendChild(label);
       group.appendChild(inputEl);
@@ -238,6 +252,61 @@ class DynamicUIManager {
     if (submitBtn) submitBtn.innerHTML = `💾 Guardar ${voc.entitySingular || 'Registro'}`;
     if (btnSaveAndNew) btnSaveAndNew.style.display = 'inline-flex';
     if (btnCancelEdit) btnCancelEdit.style.display = 'none';
+
+    // Restablecer valores por defecto y limpiar estados de validación
+    if (this.schema && this.schema.editableFields) {
+      this.schema.editableFields.forEach(field => {
+        const input = document.getElementById(`field_${field.id}`);
+        if (!input) return;
+        input.classList.remove('is-invalid');
+        if (field.defaultValue !== undefined && field.defaultValue !== null) {
+          if (field.type === 'checkbox') {
+            input.checked = Boolean(field.defaultValue);
+          } else {
+            input.value = field.defaultValue;
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Valida campos obligatorios en el cliente antes de enviar
+   */
+  validateForm() {
+    if (!this.schema || !this.schema.editableFields) return { valid: true };
+
+    const missingFields = [];
+    let firstInvalidInput = null;
+
+    this.schema.editableFields.forEach(field => {
+      const isRequired = field.required || field.isPrimary;
+      if (!isRequired) return;
+
+      const input = document.getElementById(`field_${field.id}`);
+      if (!input) return;
+
+      const val = field.type === 'checkbox' ? input.checked : (input.value ? input.value.trim() : '');
+      if (val === '' || val === null || val === undefined) {
+        missingFields.push(field.name);
+        input.classList.add('is-invalid');
+        if (!firstInvalidInput) firstInvalidInput = input;
+      } else {
+        input.classList.remove('is-invalid');
+      }
+    });
+
+    if (missingFields.length > 0) {
+      if (firstInvalidInput) {
+        firstInvalidInput.focus();
+      }
+      return {
+        valid: false,
+        message: `Completá los campos requeridos: ${missingFields.join(', ')}`
+      };
+    }
+
+    return { valid: true };
   }
 
   /**

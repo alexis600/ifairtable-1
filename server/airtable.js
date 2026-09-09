@@ -208,7 +208,16 @@ class AirtableClient {
   }
 
   async createRecord(tenant, rawFields) {
-    const sanitizedFields = await sanitizePayload(rawFields, tenant);
+    const payloadWithDefaults = { ...rawFields };
+    if (tenant.formRules?.defaultValues) {
+      for (const [defKey, defVal] of Object.entries(tenant.formRules.defaultValues)) {
+        if (payloadWithDefaults[defKey] === undefined || payloadWithDefaults[defKey] === null || payloadWithDefaults[defKey] === '') {
+          payloadWithDefaults[defKey] = defVal;
+        }
+      }
+    }
+
+    const sanitizedFields = await sanitizePayload(payloadWithDefaults, tenant);
 
     if (this.isDemoMode()) {
       const records = this.getDemoRecordsForTenant(tenant.id);

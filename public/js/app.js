@@ -189,6 +189,12 @@ class App {
   }
 
   async handleFormSubmit(saveAndNew = false) {
+    const validation = window.dynamicUI.validateForm();
+    if (!validation.valid) {
+      this.showToast(validation.message, 'warning');
+      return;
+    }
+
     const formData = window.dynamicUI.getFormData();
     const editingId = window.dynamicUI.currentEditingId;
     const voc = window.configManager.getVocabulary();

@@ -140,15 +140,23 @@ class SchemaManager {
     return false;
   }
 
-  mapAirtableFieldToSchema(field, primaryFieldId) {
+  mapAirtableFieldToSchema(field, primaryFieldId, tenant) {
     const isReadOnly = this.isReadOnlyField(field);
     const isPrimary = field.id === primaryFieldId;
+    const requiredList = tenant?.formRules?.requiredFields || [];
+    const defaultVals = tenant?.formRules?.defaultValues || {};
+
+    const isRequired = isPrimary || requiredList.some(r => r.toLowerCase() === field.name.toLowerCase());
+    const matchedDefaultKey = Object.keys(defaultVals).find(k => k.toLowerCase() === field.name.toLowerCase());
+    const defaultValue = matchedDefaultKey ? defaultVals[matchedDefaultKey] : null;
 
     return {
       id: field.id,
       name: field.name,
       type: field.type,
       isPrimary,
+      required: isRequired,
+      defaultValue,
       readOnly: isReadOnly,
       options: field.options || null,
       description: field.description || ''
@@ -185,7 +193,7 @@ class SchemaManager {
       }
 
       const primaryFieldId = table.primaryFieldId;
-      const fields = table.fields.map(f => this.mapAirtableFieldToSchema(f, primaryFieldId));
+      const fields = table.fields.map(f => this.mapAirtableFieldToSchema(f, primaryFieldId, tenant));
 
       return {
         tenantId: tenant.id,
@@ -195,6 +203,7 @@ class SchemaManager {
         primaryFieldId: table.primaryFieldId,
         fields,
         editableFields: fields.filter(f => !f.readOnly),
+        formRules: tenant.formRules || {},
         source: 'metadata_api',
         syncedAt: new Date().toISOString()
       };
@@ -205,8 +214,22 @@ class SchemaManager {
   }
 
   getFallbackSchema(tenant) {
-    const fields = FALLBACK_FIELDS_BY_THEME[tenant.theme] || FALLBACK_FIELDS_BY_THEME.aesthetic;
-    const primary = fields.find(f => f.isPrimary) || fields[0];
+    const baseFields = FALLBACK_FIELDS_BY_THEME[tenant.theme] || FALLBACK_FIELDS_BY_THEME.aesthetic;
+    const primary = baseFields.find(f => f.isPrimary) || baseFields[0];
+    const requiredList = tenant?.formRules?.requiredFields || [];
+    const defaultVals = tenant?.formRules?.defaultValues || {};
+
+    const fields = baseFields.map(f => {
+      const isRequired = f.isPrimary || f.required || requiredList.some(r => r.toLowerCase() === f.name.toLowerCase());
+      const matchedDefaultKey = Object.keys(defaultVals).find(k => k.toLowerCase() === f.name.toLowerCase());
+      const defaultValue = matchedDefaultKey ? defaultVals[matchedDefaultKey] : null;
+
+      return {
+        ...f,
+        required: isRequired,
+        defaultValue
+      };
+    });
 
     return {
       tenantId: tenant.id,
@@ -216,6 +239,7 @@ class SchemaManager {
       primaryFieldId: primary ? primary.id : 'fldHC',
       fields,
       editableFields: fields.filter(f => !f.readOnly),
+      formRules: tenant.formRules || {},
       source: 'static_fallback_multi_tenant',
       syncedAt: new Date().toISOString()
     };

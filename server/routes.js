@@ -127,6 +127,18 @@ router.post('/records', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: 'Los datos del registro son requeridos' });
   }
 
+  const requiredList = req.tenant.formRules?.requiredFields || [];
+  const missing = [];
+  for (const reqField of requiredList) {
+    const val = fields[reqField];
+    if (val === undefined || val === null || String(val).trim() === '') {
+      missing.push(reqField);
+    }
+  }
+  if (missing.length > 0) {
+    return res.status(400).json({ error: `Los siguientes campos son obligatorios: ${missing.join(', ')}` });
+  }
+
   try {
     const result = await airtableClient.createRecord(req.tenant, fields);
     return res.status(201).json(result);

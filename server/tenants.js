@@ -53,6 +53,12 @@ const TENANTS = {
       eventsLabel: 'Turnos / Tratamientos',
       primarySearchPlaceholder: 'Buscar por nombre, apellido, teléfono o HC...'
     },
+    formRules: {
+      requiredFields: ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail'],
+      defaultValues: {
+        'Status': 'Activo'
+      }
+    },
     // Base a asignar cuando crees su workspace de Airtable:
     airtable: {
       baseId: process.env.AIRTABLE_PODO_BASE_ID || 'appUI1CEYeCJoqhkw',
