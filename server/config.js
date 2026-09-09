@@ -69,7 +69,7 @@ const INDUSTRIES = {
 
 module.exports = {
   PORT: process.env.PORT || 3000,
-  AIRTABLE_PAT: process.env.AIRTABLE_PAT || '',
+  AIRTABLE_PAT: process.env.AIRTABLE_PAT || process.env.AirtablePAT || process.env.airtable_pat || '',
   AIRTABLE_BASE_ID: process.env.AIRTABLE_BASE_ID || 'appljMcMjD7reOMsg',
   AIRTABLE_TABLE_ID: process.env.AIRTABLE_TABLE_ID || 'tblwNKUcveOLycUye',
   JWT_SECRET: process.env.JWT_SECRET || 'super_secret_jwt_key_interfaz_airtable_2026',
