@@ -474,7 +474,8 @@ class DynamicUIManager {
         tr.appendChild(td);
       });
 
-      // Acciones: Editar y Eliminar
+      // Acciones: Editar (y Eliminar solo si está habilitado para el tenant)
+      const allowDelete = this.schema && this.schema.allowDelete !== false;
       const tdActions = document.createElement('td');
       tdActions.style.textAlign = 'right';
       tdActions.innerHTML = `
@@ -482,9 +483,10 @@ class DynamicUIManager {
           <button class="btn-row-action edit" title="Editar paciente" data-id="${rec.id}">
             ✏️ Editar
           </button>
+          ${allowDelete ? `
           <button class="btn-row-action delete" title="Eliminar paciente" data-id="${rec.id}">
             🗑️ Eliminar
-          </button>
+          </button>` : ''}
         </div>
       `;
 
@@ -493,9 +495,11 @@ class DynamicUIManager {
         this.setEditMode(rec);
       });
 
-      tdActions.querySelector('.delete').addEventListener('click', () => {
-        this.promptDelete(rec);
-      });
+      if (allowDelete) {
+        tdActions.querySelector('.delete')?.addEventListener('click', () => {
+          this.promptDelete(rec);
+        });
+      }
 
       tr.appendChild(tdActions);
       tableBody.appendChild(tr);

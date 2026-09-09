@@ -179,6 +179,12 @@ router.patch('/records/:id', authMiddleware, async (req, res) => {
 });
 
 router.delete('/records/:id', authMiddleware, async (req, res) => {
+  if (req.tenant.formRules?.allowDelete === false) {
+    return res.status(403).json({
+      error: 'La eliminación de registros no está permitida desde la interfaz web. Por favor gestione las bajas a través del canal oficial (Telegram).'
+    });
+  }
+
   try {
     const result = await airtableClient.deleteRecord(req.tenant, req.params.id);
     return res.json(result);

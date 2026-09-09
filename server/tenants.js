@@ -42,7 +42,6 @@ const TENANTS = {
     icon: '💅',
     tagline: 'Gestión Integral de Pacientes y Turnos de Estética',
     username: 'maria.elena',
-    // Bcrypt hash para 'Podologia.2814!'
     passwordHash: '$2a$10$REzZcB8MQ8TTwejjppD6P.vsYw.Q4Wag5esxdQWAgwwi.J5fSBCbS',
     vocabulary: {
       entitySingular: 'Paciente',
@@ -61,7 +60,8 @@ const TENANTS = {
       hiddenFormFields: ['Honorarios', 'Notas', 'Status'],
       nonEditableFields: ['Status'],
       tableColumns: ['HC', 'Paciente', 'Telefono', 'Mail', 'Fecha Nacimiento', 'Direccion', 'Status'],
-      autoIncrementField: 'HC'
+      autoIncrementField: 'HC',
+      allowDelete: false
     },
     // Base a asignar cuando crees su workspace de Airtable:
     airtable: {

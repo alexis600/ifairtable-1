@@ -209,6 +209,7 @@ class SchemaManager {
         tableColumns: tenant?.formRules?.tableColumns || null,
         autoIncrementField: tenant?.formRules?.autoIncrementField || null,
         nonEditableFields: tenant?.formRules?.nonEditableFields || [],
+        allowDelete: tenant?.formRules?.allowDelete !== false,
         formRules: tenant.formRules || {},
         source: 'metadata_api',
         syncedAt: new Date().toISOString()
@@ -251,6 +252,7 @@ class SchemaManager {
       tableColumns: tenant?.formRules?.tableColumns || null,
       autoIncrementField: tenant?.formRules?.autoIncrementField || null,
       nonEditableFields: tenant?.formRules?.nonEditableFields || [],
+      allowDelete: tenant?.formRules?.allowDelete !== false,
       formRules: tenant.formRules || {},
       source: 'static_fallback_multi_tenant',
       syncedAt: new Date().toISOString()
