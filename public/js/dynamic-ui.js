@@ -8,6 +8,7 @@ class DynamicUIManager {
     this.currentEditingId = null;
     this.pendingDeleteId = null;
     this.records = [];
+    this.isAutoIncrementManuallyEdited = false;
   }
 
   setSchema(schema) {
@@ -147,18 +148,26 @@ class DynamicUIManager {
       inputEl.addEventListener('input', () => inputEl.classList.remove('is-invalid'));
       inputEl.addEventListener('change', () => inputEl.classList.remove('is-invalid'));
 
+      if (this.schema.autoIncrementField && field.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase()) {
+        inputEl.addEventListener('input', () => {
+          this.isAutoIncrementManuallyEdited = true;
+        });
+      }
+
       group.appendChild(label);
       group.appendChild(inputEl);
       container.appendChild(group);
     });
 
-    // Precargar sugerencia de auto-incremento (ej. HC) si estamos en modo creación
-    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField) {
-      const field = this.schema.editableFields.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
-      if (field) {
-        const input = document.getElementById(`field_${field.id}`);
-        if (input && !input.value) {
-          input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
+    // Precargar sugerencia de auto-incremento (ej. HC) si ya tenemos registros cargados y estamos en modo creación
+    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField && !this.isAutoIncrementManuallyEdited) {
+      if (this.records && this.records.length > 0) {
+        const field = this.schema.editableFields.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
+        if (field) {
+          const input = document.getElementById(`field_${field.id}`);
+          if (input) {
+            input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
+          }
         }
       }
     }
@@ -193,6 +202,7 @@ class DynamicUIManager {
    */
   setEditMode(record) {
     this.currentEditingId = record.id;
+    this.isAutoIncrementManuallyEdited = true;
     const voc = window.configManager.getVocabulary();
 
     const formTitle = document.getElementById('formTitle');
@@ -280,6 +290,7 @@ class DynamicUIManager {
       });
     }
 
+    this.isAutoIncrementManuallyEdited = false;
     // Auto-incrementar campo especificado (ej. HC = max + 1) en modo creación
     if (this.schema && this.schema.autoIncrementField) {
       const field = this.schema.editableFields.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
@@ -298,9 +309,12 @@ class DynamicUIManager {
   getNextAutoIncrementValue(fieldName) {
     if (!this.records || this.records.length === 0) return 101;
 
+    const lowerName = fieldName.toLowerCase();
     const values = this.records
       .map(r => {
-        const val = r.fields ? r.fields[fieldName] : null;
+        if (!r.fields) return null;
+        const key = Object.keys(r.fields).find(k => k.toLowerCase() === lowerName);
+        const val = key ? r.fields[key] : null;
         const num = parseInt(val, 10);
         return !isNaN(num) && num > 0 ? num : null;
       })
@@ -366,12 +380,12 @@ class DynamicUIManager {
       activeCountEl.textContent = activeCount;
     }
 
-    // Si estamos en modo creación y el campo auto-incrementable aún no tiene valor, sugerirlo
-    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField) {
+    // Al cargar registros: si estamos en modo creación y no fue editado a mano, sugerir max + 1
+    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField && !this.isAutoIncrementManuallyEdited) {
       const field = this.schema.editableFields?.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
       if (field) {
         const input = document.getElementById(`field_${field.id}`);
-        if (input && !input.value) {
+        if (input) {
           input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
         }
       }
