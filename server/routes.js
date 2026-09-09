@@ -139,6 +139,14 @@ router.post('/records', authMiddleware, async (req, res) => {
     return res.status(400).json({ error: `Los siguientes campos son obligatorios: ${missing.join(', ')}` });
   }
 
+  if (req.tenant.formRules?.defaultValues) {
+    for (const [defKey, defVal] of Object.entries(req.tenant.formRules.defaultValues)) {
+      if (!fields[defKey] || String(fields[defKey]).trim() === '') {
+        fields[defKey] = defVal;
+      }
+    }
+  }
+
   try {
     const result = await airtableClient.createRecord(req.tenant, fields);
     return res.status(201).json(result);
@@ -152,6 +160,14 @@ router.patch('/records/:id', authMiddleware, async (req, res) => {
 
   if (!fields || typeof fields !== 'object' || Object.keys(fields).length === 0) {
     return res.status(400).json({ error: 'Datos para actualizar requeridos' });
+  }
+
+  // Proteger campos bloqueados contra edición desde la web (ej. Status)
+  const nonEditable = (req.tenant.formRules?.nonEditableFields || []).map(f => f.toLowerCase());
+  for (const key of Object.keys(fields)) {
+    if (nonEditable.includes(key.toLowerCase())) {
+      delete fields[key];
+    }
   }
 
   try {

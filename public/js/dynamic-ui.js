@@ -151,6 +151,17 @@ class DynamicUIManager {
       group.appendChild(inputEl);
       container.appendChild(group);
     });
+
+    // Precargar sugerencia de auto-incremento (ej. HC) si estamos en modo creación
+    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField) {
+      const field = this.schema.editableFields.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
+      if (field) {
+        const input = document.getElementById(`field_${field.id}`);
+        if (input && !input.value) {
+          input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
+        }
+      }
+    }
   }
 
   /**
@@ -268,6 +279,35 @@ class DynamicUIManager {
         }
       });
     }
+
+    // Auto-incrementar campo especificado (ej. HC = max + 1) en modo creación
+    if (this.schema && this.schema.autoIncrementField) {
+      const field = this.schema.editableFields.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
+      if (field) {
+        const input = document.getElementById(`field_${field.id}`);
+        if (input) {
+          input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
+        }
+      }
+    }
+  }
+
+  /**
+   * Calcula el siguiente valor sugerido numérico para un campo (ej. max HC + 1)
+   */
+  getNextAutoIncrementValue(fieldName) {
+    if (!this.records || this.records.length === 0) return 101;
+
+    const values = this.records
+      .map(r => {
+        const val = r.fields ? r.fields[fieldName] : null;
+        const num = parseInt(val, 10);
+        return !isNaN(num) && num > 0 ? num : null;
+      })
+      .filter(v => v !== null);
+
+    if (values.length === 0) return 101;
+    return Math.max(...values) + 1;
   }
 
   /**
@@ -324,6 +364,17 @@ class DynamicUIManager {
     if (activeCountEl) {
       const activeCount = records.filter(r => String(r.fields.Status || '').toLowerCase().includes('activo')).length;
       activeCountEl.textContent = activeCount;
+    }
+
+    // Si estamos en modo creación y el campo auto-incrementable aún no tiene valor, sugerirlo
+    if (this.currentEditingId === null && this.schema && this.schema.autoIncrementField) {
+      const field = this.schema.editableFields?.find(f => f.name.toLowerCase() === this.schema.autoIncrementField.toLowerCase());
+      if (field) {
+        const input = document.getElementById(`field_${field.id}`);
+        if (input && !input.value) {
+          input.value = this.getNextAutoIncrementValue(this.schema.autoIncrementField);
+        }
+      }
     }
 
     if (!tableHead || !tableBody) return;
@@ -439,6 +490,20 @@ class DynamicUIManager {
 
   getVisibleColumns() {
     if (!this.schema || !this.schema.fields) return [];
+
+    // Si el tenant define columnas específicas y orden para la tabla
+    if (Array.isArray(this.schema.tableColumns) && this.schema.tableColumns.length > 0) {
+      const fieldMap = new Map();
+      this.schema.fields.forEach(f => fieldMap.set(f.name.toLowerCase(), f));
+
+      const cols = [];
+      this.schema.tableColumns.forEach(colName => {
+        const field = fieldMap.get(colName.toLowerCase());
+        if (field) cols.push(field);
+      });
+      return cols;
+    }
+
     // Respetar el orden natural exacto de columnas definido en Airtable
     return [...this.schema.fields];
   }

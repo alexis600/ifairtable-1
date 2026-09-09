@@ -57,7 +57,11 @@ const TENANTS = {
       requiredFields: ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail'],
       defaultValues: {
         'Status': 'Activo'
-      }
+      },
+      hiddenFormFields: ['Honorarios', 'Notas', 'Status'],
+      nonEditableFields: ['Status'],
+      tableColumns: ['HC', 'Paciente', 'Telefono', 'Mail', 'Fecha Nacimiento', 'Direccion', 'Status'],
+      autoIncrementField: 'HC'
     },
     // Base a asignar cuando crees su workspace de Airtable:
     airtable: {

@@ -195,6 +195,9 @@ class SchemaManager {
       const primaryFieldId = table.primaryFieldId;
       const fields = table.fields.map(f => this.mapAirtableFieldToSchema(f, primaryFieldId, tenant));
 
+      const hiddenFormFields = (tenant?.formRules?.hiddenFormFields || []).map(f => f.toLowerCase());
+      const editableFields = fields.filter(f => !f.readOnly && !hiddenFormFields.includes(f.name.toLowerCase()));
+
       return {
         tenantId: tenant.id,
         baseId: table.id,
@@ -202,7 +205,10 @@ class SchemaManager {
         tableName: table.name,
         primaryFieldId: table.primaryFieldId,
         fields,
-        editableFields: fields.filter(f => !f.readOnly),
+        editableFields,
+        tableColumns: tenant?.formRules?.tableColumns || null,
+        autoIncrementField: tenant?.formRules?.autoIncrementField || null,
+        nonEditableFields: tenant?.formRules?.nonEditableFields || [],
         formRules: tenant.formRules || {},
         source: 'metadata_api',
         syncedAt: new Date().toISOString()
@@ -231,6 +237,9 @@ class SchemaManager {
       };
     });
 
+    const hiddenFormFields = (tenant?.formRules?.hiddenFormFields || []).map(f => f.toLowerCase());
+    const editableFields = fields.filter(f => !f.readOnly && !hiddenFormFields.includes(f.name.toLowerCase()));
+
     return {
       tenantId: tenant.id,
       baseId: tenant.airtable.baseId,
@@ -238,7 +247,10 @@ class SchemaManager {
       tableName: tenant.name,
       primaryFieldId: primary ? primary.id : 'fldHC',
       fields,
-      editableFields: fields.filter(f => !f.readOnly),
+      editableFields,
+      tableColumns: tenant?.formRules?.tableColumns || null,
+      autoIncrementField: tenant?.formRules?.autoIncrementField || null,
+      nonEditableFields: tenant?.formRules?.nonEditableFields || [],
       formRules: tenant.formRules || {},
       source: 'static_fallback_multi_tenant',
       syncedAt: new Date().toISOString()
