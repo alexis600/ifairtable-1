@@ -55,7 +55,11 @@ const TENANTS = {
     formRules: {
       requiredFields: ['HC', 'Nombre', 'Apellido', 'Telefono', 'Mail'],
       defaultValues: {
-        'Status': 'Activo'
+        'Status': 'Activo',
+        'Mail': 'mariaelenalorenz29@gmail.com',
+        'Email': 'mariaelenalorenz29@gmail.com',
+        'Correo': 'mariaelenalorenz29@gmail.com',
+        'Correo electrónico': 'mariaelenalorenz29@gmail.com'
       },
       hiddenFormFields: ['Honorarios', 'Notas', 'Status'],
       nonEditableFields: ['Status'],
